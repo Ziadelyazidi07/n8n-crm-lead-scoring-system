@@ -1,0 +1,360 @@
+{
+  "name": "CRM Automatique",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crm",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -448,
+        -48
+      ],
+      "id": "1c3d3c60-fe9a-4337-9f89-4b71cf06bb1e",
+      "name": "Webhook",
+      "webhookId": "cf16c162-8818-4630-b000-edb4152ee0ad"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Récupérer les données du lead\nconst lead = $input.first().json.body;\n\n// Système de scoring automatique\nlet score = 0;\n\n// Score selon le budget\nif (lead.budget >= 10000) score += 40;\nelse if (lead.budget >= 5000) score += 25;\nelse if (lead.budget >= 1000) score += 10;\n\n// Score selon le secteur\nconst secteursVIP = ['immobilier', 'finance', 'sante', 'technologie'];\nif (secteursVIP.includes(lead.secteur?.toLowerCase())) score += 30;\n\n// Score si téléphone fourni\nif (lead.telephone) score += 20;\n\n// Score si message détaillé\nif (lead.message && lead.message.length > 50) score += 10;\n\n// Déterminer le statut\nlet statut = '';\nif (score >= 70) statut = 'HOT 🔥';\nelse if (score >= 40) statut = 'WARM ⚡';\nelse statut = 'COLD ❄️';\n\nreturn [{\n  json: {\n    date: new Date().toISOString(),\n    client: lead.client,\n    email: lead.email,\n    telephone: lead.telephone || 'Non fourni',\n    budget: lead.budget,\n    secteur: lead.secteur,\n    message: lead.message || '',\n    score: score,\n    statut: statut\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        -48
+      ],
+      "id": "0698316e-307a-4c9d-8ccc-3d30dd93bcb3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1J4AfsSk6_I1SPCxJvRWaeftRW3xfKT-FIN3DpK90lGg",
+          "mode": "list",
+          "cachedResultName": "n8n projets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J4AfsSk6_I1SPCxJvRWaeftRW3xfKT-FIN3DpK90lGg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1824305896,
+          "mode": "list",
+          "cachedResultName": "CRM Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1J4AfsSk6_I1SPCxJvRWaeftRW3xfKT-FIN3DpK90lGg/edit#gid=1824305896"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $json.date }}",
+            "budget": "={{ $json.budget }}",
+            "email": "={{ $json.email }}",
+            "client": "={{ $json.client }}",
+            "secteur": "={{ $json.secteur }}",
+            "score": "={{ $json.score }}",
+            "statut": "={{ $json.statut }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "client",
+              "displayName": "client",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "budget",
+              "displayName": "budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "secteur",
+              "displayName": "secteur",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "statut",
+              "displayName": "statut",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -96,
+        -48
+      ],
+      "id": "39acf90a-29f2-43a5-95ea-ba300041faa5",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "j3wHimjYrX3HoH6S",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8e346c9b-3309-41e9-9386-8917f69c3b03",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 69,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        80,
+        -48
+      ],
+      "id": "6efffd5b-e34f-420a-bcc9-cb64b57e1a67",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "5186657264",
+        "text": "=🔥 LEAD HOT !\nClient : {{ $('Code in JavaScript').item.json.client }}\nBudget : {{ $('Code in JavaScript').item.json.budget }} DH\nScore : {{ $('Code in JavaScript').item.json.score }}/100\nTél : {{ $('Code in JavaScript').item.json.telephone }}\n⚡ APPELER MAINTENANT !",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        -160
+      ],
+      "id": "d52703b1-5350-43c4-a357-6ee748add38a",
+      "name": "Send a text message",
+      "webhookId": "6668a273-e48b-4844-b055-c78c268f9334",
+      "credentials": {
+        "telegramApi": {
+          "id": "ieP01E2ksZOfP9WZ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Code in JavaScript').item.json.email }}",
+        "subject": "Votre demande - Réponse prioritaire",
+        "message": "=Bonjour {{ $('Code in JavaScript').item.json.client }},\n\nVotre demande est prioritaire ! 🎉\nUn conseiller vous contacte dans l'heure.\n\nBudget : {{ $('Code in JavaScript').item.json.budget }} DH\nSecteur : {{ $('Code in JavaScript').item.json.secteur }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        -160
+      ],
+      "id": "a4e8d099-955a-462c-b66a-e903f8dfa2e3",
+      "name": "Send a message",
+      "webhookId": "33882af3-fcb7-4d2c-8543-f8f97befdc7f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I46JBnBTp9Lulpa1",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5186657264",
+        "text": "=❄️ Nouveau lead COLD Client : {{ $('Code').item.json.client }} Budget : {{ $('Code').item.json.budget }} DH Score : {{ $('Code').item.json.score }}/100 Secteur : {{ $('Code').item.json.secteur }}  📋 À relancer dans 48h",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        48
+      ],
+      "id": "e1598c69-c407-445a-8c58-90a5dae1b391",
+      "name": "Send a text message1",
+      "webhookId": "f252705f-6007-428b-b496-1eabbdee714f",
+      "credentials": {
+        "telegramApi": {
+          "id": "ieP01E2ksZOfP9WZ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Code in JavaScript').item.json.email }}",
+        "subject": "Merci pour votre intérêt",
+        "message": "=Bonjour {{ $('Code in JavaScript').item.json.client }},  Merci pour votre message ! 😊  Nous avons bien reçu votre demande concernant le secteur {{ $('Code in JavaScript').item.json.secteur }}.  Notre équipe reviendra vers vous très prochainement.  Cordialement",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        48
+      ],
+      "id": "d7599499-6aa0-4039-a760-09cdc8e54e98",
+      "name": "Send a message1",
+      "webhookId": "c8ea563e-c3be-4919-a3e2-68efca7b5889",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I46JBnBTp9Lulpa1",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e836de14-0a62-45aa-81a1-04c20dca67b3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b8254975fa9435c6ac988d206ba09626b706a53488574c99dc5ebdf46dc0b7f0"
+  },
+  "id": "KVozy2QsCCLg8ujH",
+  "tags": []
+}
